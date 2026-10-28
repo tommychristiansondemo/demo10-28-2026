@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta name="color-scheme" content="light">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Trade Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f6fa;--panel:#ffffff;--panel2:#f8fafc;--line:#e2e8f0;--text:#0f172a;--mute:#64748b;
+  --green:#15803d;--green-bg:#dcfce7;--green-line:#86efac;--red:#b91c1c;--red-bg:#fee2e2;--red-line:#fca5a5;
+  --amber:#92400e;--amber-bg:#fef3c7;--amber-line:#fcd34d;--blue:#1d4ed8;--blue-bg:#e0ecff;--blue-line:#93c5fd;
+  --violet:#6d28d9;--grey-bg:#eef1f5}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 Inter,system-ui,sans-serif}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 16px 60px}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-bottom:16px}
+h1{font-size:22px;margin:0;letter-spacing:-.02em}
+h1 span{color:var(--violet)}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--panel)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--mute)}
+.dot.live{background:var(--green);box-shadow:0 0 0 0 rgba(21,128,61,.5);animation:pulse 2s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 8px rgba(21,128,61,0)}100%{box-shadow:0 0 0 0 rgba(21,128,61,0)}}
+.demo{background:var(--amber-bg);border-color:var(--amber-line);color:var(--amber)}
+.livemode{background:var(--green-bg);border-color:var(--green-line);color:var(--green)}
+.spacer{flex:1}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:7px 12px;font-weight:600}
+button:hover{border-color:var(--mute)}
+button:disabled{opacity:.45;cursor:wait}
+.btn-acc{background:var(--green);border-color:var(--green);color:#fff}
+.btn-acc:hover{background:#166534;border-color:#166534}
+.btn-rej{background:#fff;color:var(--red);border-color:var(--red-line)}
+.btn-rej:hover{background:var(--red-bg)}
+.banner{padding:12px 14px;border-radius:10px;margin-bottom:14px;border:1px solid}
+.banner.err{background:var(--red-bg);border-color:var(--red-line);color:#7f1d1d}
+.banner.info{background:var(--blue-bg);border-color:var(--blue-line);color:#1e3a8a}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 1px 2px rgba(15,23,42,.05)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.view{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px}
+@media (max-width:900px){.view{grid-template-columns:1fr}}
+.label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);font-weight:600;margin-bottom:6px}
+.tape{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{font-size:12px;padding:3px 8px;border-radius:6px;background:var(--panel2)}
+.up{color:var(--green)}.down{color:var(--red)}
+.bar{height:8px;background:var(--panel2);border-radius:99px;overflow:hidden;margin:8px 0 6px}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--violet))}
+h2{font-size:16px;margin:0 0 4px}
+.sub{color:var(--mute);font-size:13px;margin-bottom:12px}
+.rec{border:1px solid var(--line);background:var(--panel2);border-radius:12px;padding:12px 14px;margin-bottom:10px;transition:opacity .3s}
+.rec.gone{opacity:0}
+.rec-top{display:flex;align-items:baseline;gap:10px}
+.rank{font-weight:700;color:var(--violet);font-size:13px;min-width:22px}
+.ttl{font-weight:700;font-size:15px}
+.px{margin-left:auto;font-weight:600}
+.thesis{margin:6px 0 6px 32px;font-size:14px}
+.meta{margin-left:32px;display:flex;flex-wrap:wrap;gap:6px;font-size:12px;color:var(--mute)}
+.meta b{color:var(--text);font-weight:600}
+.conf{font-size:11px;padding:1px 7px;border-radius:99px;font-weight:700;text-transform:uppercase}
+.conf.high{background:var(--green-bg);color:var(--green)}.conf.medium{background:var(--amber-bg);color:var(--amber)}.conf.low{background:var(--grey-bg);color:var(--mute)}
+.sug{margin:8px 0 0 32px;font-size:12px;padding:6px 9px;border-radius:7px;background:var(--blue-bg);color:#1e3a8a;display:inline-block}
+.sug b{color:var(--text)}
+.acts{display:flex;gap:8px;margin:10px 0 0 32px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--mute);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.st{font-weight:700;font-size:11px;padding:2px 7px;border-radius:5px;background:var(--grey-bg)}
+.st.FILLED{background:var(--green-bg);color:var(--green)}
+.st.WORKING,.st.QUEUED,.st.PENDING_ACTIVATION,.st.ACCEPTED,.st.SUBMITTED{background:var(--blue-bg);color:var(--blue)}
+.st.CANCELED,.st.EXPIRED,.st.REJECTED{background:var(--grey-bg);color:var(--mute)}
+.scroll{overflow-x:auto}
+.empty{color:var(--mute);font-size:14px;padding:12px 0}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);max-width:min(640px,calc(100% - 32px));padding:14px 16px;border-radius:12px;
+  background:#fff;border:1px solid var(--line);box-shadow:0 10px 30px rgba(15,23,42,.18);display:none;z-index:10}
+#toast.ok{border-color:var(--green-line)}#toast.bad{border-color:var(--amber-line);background:var(--amber-bg)}
+#toast .t-actions{margin-top:10px;display:flex;gap:8px}
+dialog#method{width:min(760px,calc(100% - 32px));max-height:min(86vh,900px);padding:0;border:1px solid var(--line);border-radius:16px;
+  background:var(--panel);color:var(--text);box-shadow:0 24px 60px rgba(15,23,42,.25)}
+dialog#method::backdrop{background:rgba(15,23,42,.45)}
+.m-head{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+.m-head h2{margin:0;font-size:18px}
+.m-body{padding:4px 20px 20px;font-size:14px}
+.m-body h3{font-size:14px;margin:18px 0 6px;color:var(--violet)}
+.m-body ul{margin:0;padding-left:20px}.m-body li{margin:4px 0}
+.m-body .lead{font-size:15px}
+.m-body .fine{color:var(--mute);font-size:12px;margin-top:18px;border-top:1px solid var(--line);padding-top:12px}
+.foot{color:var(--mute);font-size:12px;margin-top:24px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>AI <span>Trade Desk</span></h1>
+    <span class="pill"><span class="dot" id="mdot"></span><span id="mstate">…</span></span>
+    <span class="pill" id="modepill">…</span>
+    <span class="spacer"></span>
+    <span class="pill mono" id="clock">updated —</span>
+    <button onclick="$('method').showModal()">Methodology</button>
+    <button onclick="load(true)">Refresh</button>
+  </header>
+
+  <div id="banners"></div>
+
+  <div class="view">
+    <div class="card">
+      <div class="label">Claude's read on the market <span id="model" class="mono" style="text-transform:none;letter-spacing:0"></span></div>
+      <div id="mview">Loading…</div>
+      <div class="tape mono" id="tape"></div>
+    </div>
+    <div class="card">
+      <div class="label">Class trading budget</div>
+      <div><b id="bused" class="mono">$0</b> of <span id="btotal" class="mono">$1,500</span> committed</div>
+      <div class="bar"><i id="bbar" style="width:0"></i></div>
+      <div class="sub" id="bnote" style="margin:0"></div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <h2>Top 5 stock buys</h2>
+      <div class="sub">Shares to buy now and sell at a profit by Friday.</div>
+      <div id="stocks"></div>
+    </section>
+    <section class="card">
+      <h2>Top 5 vertical spreads</h2>
+      <div class="sub">Debit spreads expiring <span id="exp" class="mono"></span>, one spread risks at most the debit.</div>
+      <div id="spreads"></div>
+    </section>
+  </div>
+
+  <section class="card" style="margin-top:16px">
+    <h2>Orders placed by the class</h2>
+    <div class="sub">Live status from Schwab, refreshed every minute. Only orders placed from this page are shown.</div>
+    <div class="scroll"><table><thead><tr><th>Placed</th><th>Trade</th><th>Qty</th><th>Limit</th><th>Est. cost</th><th>Status</th><th>Filled</th><th></th></tr></thead>
+      <tbody id="orders"></tbody></table></div>
+  </section>
+
+  <section class="card" style="margin-top:16px">
+    <h2>Rejected by the class</h2>
+    <div class="sub">These never come back into the rankings.</div>
+    <div id="rejected"></div>
+  </section>
+
+  <div class="foot">Educational demo for a generative-AI class. Rankings come from a quantitative screen of live Schwab market data,
+    re-ranked by an LLM on Amazon Bedrock every minute. Not investment advice. Orders are real.</div>
+</div>
+<div id="toast"></div>
+
+<dialog id="method" onclick="if(event.target===this)this.close()">
+  <div class="m-head"><h2>How the AI Trade Desk picks trades</h2><button onclick="$('method').close()" aria-label="Close">✕</button></div>
+  <div class="m-body">
+    <p class="lead">Goal: find trades you could <b>buy now and sell at a profit by Friday</b>. Every minute, a two-stage
+      pipeline runs. First a transparent quantitative screen over live Schwab market data, then a large language model
+      (Claude on Amazon Bedrock) that reads the screen's output and the overall market and makes the final call.</p>
+
+    <h3>1 · Live data</h3>
+    <ul>
+      <li>Real-time quotes from Schwab for about 75 large, liquid, optionable stocks and sector ETFs, plus a market dashboard
+        (SPY, QQQ, IWM, VIX, sector ETFs, Treasuries).</li>
+      <li>Three months of daily price history per symbol (refreshed once a day) for trend and volatility measures.</li>
+      <li>Live option chains for the November 6 expiration on the most promising names.</li>
+    </ul>
+
+    <h3>2 · Stock screen (bullish score)</h3>
+    <p>Two short-term patterns with a long research track record in liquid US stocks, plus a few adjustments:</p>
+    <ul>
+      <li><b>Uptrend filter</b>: price above its 50-day average and the 20-day above the 50-day.</li>
+      <li><b>Pullback in an uptrend</b>: a 2-day RSI below 25 means the stock dipped sharply for a day or two inside a
+        healthy trend. Those dips tend to bounce within days (short-term mean reversion).</li>
+      <li><b>Breakout</b>: trading within 1.5% of its 20-day high, up on the day, with volume running at least 1.2× its normal pace.</li>
+      <li><b>Relative strength</b>: rewarded for beating SPY today, penalized for lagging it.</li>
+      <li><b>Enough movement</b>: average daily range (ATR) of 1.5–5% earns a bonus, since it's enough to reach a target in a few
+        sessions. Above 7% is penalized as a coin flip.</li>
+      <li><b>No chasing</b>: names already up more than 6% today are penalized.</li>
+      <li>One share must fit within the $500 per-order limit.</li>
+    </ul>
+
+    <h3>3 · Vertical spread builder</h3>
+    <ul>
+      <li><b>Bull call spreads</b> on the strongest names (buy a call, sell a higher-strike call). These are <i>debit</i> spreads:
+        the most you can lose is what you pay.</li>
+      <li><b>Early-assignment safety:</b> the sold call could in theory be exercised early by its owner. That is only
+        worthwhile for them just before an ex-dividend date, so stocks with an ex-dividend date before expiration are skipped.
+        Bear put spreads are not offered, because a sold put that goes deep in the money can be exercised early at any time.</li>
+      <li>The long leg is near the money (delta 0.38–0.68). The app tries each nearby short strike and keeps spreads costing 25–62%
+        of their width and under $480 per spread.</li>
+      <li>Liquidity filters: both legs need a real two-sided market (bid/ask gap at most 35% of mid) and open interest of at least 25.</li>
+      <li>For each candidate the app estimates the <b>probability of finishing beyond breakeven</b> from the option market's own
+        deltas, and computes an <b>expected return per dollar risked</b>. The best spread per stock is kept, and spreads are scored by
+        the stock's setup score plus twice that expected return.</li>
+    </ul>
+
+    <h3>4 · Claude's review</h3>
+    <ul>
+      <li>The top 15 stocks and top 12 spreads, with every metric above and the market dashboard, go to Claude (Sonnet 4.6 on
+        Amazon Bedrock). Claude is asked to rank them for the best chance of a profitable exit by Friday, weighing the market
+        mood, sector rotation, setup quality and risk/reward, and to flag likely earnings risk.</li>
+      <li>For each pick Claude writes the one-line thesis you see, a target and stop for stocks, and a confidence
+        (HIGH / MEDIUM / LOW). Confidence is Claude's judgment, not a measured probability.</li>
+      <li>Claude's order becomes the final ranking. If the model is unavailable, the quant scores are used and the card says
+        "Quant screen" with LOW confidence.</li>
+      <li>Claude re-reads the market every minute while the market is open and every 30 minutes otherwise.</li>
+    </ul>
+
+    <h3>5 · Your choices shape the list</h3>
+    <ul>
+      <li><b>Reject</b> removes an idea for good, and the next-ranked idea moves up. A rejected stock never returns, and a rejected spread
+        keeps that stock's spreads in the same direction out too, even with new strikes.</li>
+      <li><b>Accept</b> re-checks the live price at the moment you click and sizes the order as close to $500 as possible without
+        going over. In demo mode the limit price is set 10% below the current price, so orders usually wait unfilled.</li>
+      <li>Any stock the account already holds a position or open order in (shares or options) is left out, and re-checked
+        at the moment you click. That way an option elsewhere in the account can never be assigned against shares
+        the class bought.</li>
+    </ul>
+
+    <p class="fine">This is a teaching demo of how quickly an AI-assisted trading app can be built. Its rules are simple heuristics,
+      it has not been backtested, and nothing here is investment advice. The orders, however, are real.</p>
+  </div>
+</dialog>
+
+<script>
+let S=null, timer=null, busy=false;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money=n=>"$"+Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const tm=t=>t?new Date(t*1000).toLocaleTimeString([], {hour:"numeric",minute:"2-digit",second:"2-digit"}):"—";
+const pct=n=>(n>0?"+":"")+Number(n).toFixed(2)+"%";
+
+async function load(manual){
+  try{
+    const r=await fetch("/api/state",{cache:"no-store"}); S=await r.json(); render();
+    if(manual) toast("List refreshed.",true,2000);
+  }catch(e){ $("banners").innerHTML=`<div class="banner err">Can't reach the server: ${esc(e.message)}</div>`; }
+  clearTimeout(timer); timer=setTimeout(load,60000);
+}
+
+function render(){
+  const e=S.engine||{};
+  $("mstate").textContent=e.market_open?"Market open":"Market closed";
+  $("mdot").className="dot"+(e.market_open&&e.ok?" live":"");
+  const mp=$("modepill");
+  if(S.mode.demo){ mp.className="pill demo"; mp.textContent=`DEMO MODE · limits ${Math.round(S.mode.discount*100)}% under`; }
+  else { mp.className="pill livemode"; mp.textContent="LIVE PRICING"; }
+  $("clock").textContent="ranked "+tm(S.generated_at)+" · page "+tm(S.now);
+  let b="";
+  if(e.ok===false) b+=`<div class="banner err"><b>Live data feed problem:</b> ${esc(e.error)}<br>Recommendations below may be stale and new orders will fail until it recovers.</div>`;
+  if(S.mode.demo) b+=`<div class="banner info"><b>Demo mode.</b> Accepted trades are sent to Schwab as <b>real</b> limit orders priced ${Math.round(S.mode.discount*100)}% below the recommended price, so they will most likely sit open. You can cancel any open order below.</div>`;
+  $("banners").innerHTML=b;
+  $("mview").textContent=e.market_view||"Waiting for the first analysis…";
+  $("model").textContent=e.model?`· ${e.model}`+(e.llm_at?` @ ${tm(e.llm_at)}`:""):"";
+  $("tape").innerHTML=(e.tape||[]).map(t=>{const m=t.match(/\(([-+]?[\d.]+)%\)/);const c=m?(+m[1]>=0?"up":"down"):"";return `<span class="chip ${c}">${esc(t)}</span>`}).join("");
+  const B=S.budget,L=S.limits;
+  $("bused").textContent=money(B.committed); $("btotal").textContent=money(L.max_total);
+  $("bbar").style.width=Math.min(100,100*B.committed/L.max_total)+"%";
+  $("bnote").textContent=`${B.active} of ${L.max_active} order slots used · each order up to ${money(L.max_order)}`;
+  $("exp").textContent=S.expiration;
+  $("stocks").innerHTML=S.stocks.length?S.stocks.map((r,i)=>recHTML(r,i)).join(""):`<div class="empty">No stock ideas left (${S.remaining.stocks} in reserve). New ones appear at the next one-minute refresh.</div>`;
+  $("spreads").innerHTML=S.spreads.length?S.spreads.map((r,i)=>recHTML(r,i)).join(""):`<div class="empty">No spread ideas left. New ones appear at the next one-minute refresh.</div>`;
+  $("orders").innerHTML=S.orders.length?S.orders.map(orderHTML).join(""):`<tr><td colspan="8" class="empty">No orders yet. Accept a recommendation to place one.</td></tr>`;
+  $("rejected").innerHTML=S.rejected.length?`<div class="tape">`+S.rejected.map(r=>`<span class="chip" title="rejected ${tm(r.at)}">✕ ${esc(r.title)}</span>`).join("")+`</div>`:`<div class="empty">Nothing rejected yet.</div>`;
+}
+
+function recHTML(r,i){
+  const m=r.metrics||{}; let meta=[];
+  if(r.kind==="stock"){
+    meta.push(`last <b>${money(r.price)}</b>`);
+    if(r.target) meta.push(`target <b class="up">${money(r.target)}</b>`);
+    if(r.stop) meta.push(`stop <b class="down">${money(r.stop)}</b>`);
+    if(m.day_chg!=null) meta.push(`today <b class="${m.day_chg>=0?"up":"down"}">${pct(m.day_chg)}</b>`);
+    if(m.rsi2!=null) meta.push(`RSI2 <b>${m.rsi2}</b>`);
+    if(m.rel_vol!=null) meta.push(`rel vol <b>${m.rel_vol}x</b>`);
+  }else{
+    meta.push(`debit <b>${money(r.debit*100)}</b>/spread`);
+    meta.push(`max profit <b class="up">${money(r.max_profit*100)}</b>`);
+    meta.push(`breakeven <b>${r.breakeven}</b> (${pct(r.be_move_pct)})`);
+    meta.push(`P(beyond BE) <b>${Math.round(r.prob*100)}%</b>`);
+  }
+  const px=r.kind==="stock"?money(r.price):money(r.debit)+" db";
+  return `<div class="rec" id="rec-${esc(r.key)}">
+    <div class="rec-top"><span class="rank">#${i+1}</span><span class="ttl">${esc(r.title)}</span>
+      <span class="conf ${esc(r.confidence)}">${esc(r.confidence)}</span><span class="px mono">${px}</span></div>
+    <div class="thesis">${esc(r.thesis)}</div>
+    <div class="meta mono">${meta.join(" · ")}</div>
+    ${sugHTML(r)}
+    <div class="acts">
+      <button class="btn-acc" onclick='act("accept",${JSON.stringify(r.key)},${JSON.stringify(r.sig)},${JSON.stringify(r.title)},this)'>Accept &amp; buy</button>
+      <button class="btn-rej" onclick='act("reject",${JSON.stringify(r.key)},${JSON.stringify(r.sig)},${JSON.stringify(r.title)},this)'>Reject</button>
+    </div></div>`;
+}
+
+function sugHTML(r){
+  const g=r.suggest; if(!g) return "";
+  const unit=r.kind==="stock"?(g.qty===1?"share":"shares"):(g.qty===1?"spread":"spreads");
+  if(g.qty<1) return `<div class="sug mono">Doesn't fit the remaining class budget</div>`;
+  return `<div class="sug mono">Suggested: <b>${g.qty} ${unit}</b> @ ${money(g.limit)}${r.kind==="spread"?" debit":""} limit ≈ <b>${money(g.cost)}</b></div>`;
+}
+
+function orderHTML(o){
+  const unit=o.kind==="stock"?"sh":"spr";
+  const legs=o.kind==="spread"&&o.legs?`<div class="mono" style="color:var(--mute);font-size:11px">${o.legs.map(l=>esc((l.action.startsWith("BUY")?"+":"−")+l.symbol.replace(/\s+/g," "))).join("<br>")}</div>`:"";
+  return `<tr><td class="mono">${tm(o.placed_at)}</td><td><b>${esc(o.title)}</b>${o.demo_mode?' <span class="conf medium">demo</span>':""}${legs}</td>
+    <td class="mono">${o.qty} ${unit}</td><td class="mono">${money(o.limit)}<div style="color:var(--mute);font-size:11px">ref ${money(o.ref_price)}</div></td>
+    <td class="mono">${money(o.cost)}</td><td><span class="st ${esc(o.status)}">${esc(o.status)}</span></td>
+    <td class="mono">${o.filled_qty||0}${o.avg_fill!=null?` @ ${money(Math.abs(o.avg_fill))}`:""}</td>
+    <td>${o.cancelable?`<button class="btn-rej" onclick='cancelOrder(${JSON.stringify(o.order_id)},this)'>Cancel</button>`:""}</td></tr>`;
+}
+
+async function post(path,body){
+  const r=await fetch(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  let j; try{j=await r.json()}catch{j={ok:false,message:"Server error ("+r.status+")"}}
+  return j;
+}
+
+async function act(kind,key,sig,title,btn){
+  if(busy) return;
+  if(kind==="accept"&&!confirm(`Place a REAL Schwab buy order for ${title}?\n\n`+(S.mode.demo?`Demo mode: limit ${Math.round(S.mode.discount*100)}% below the current price.`:`Limit at the current price.`)+` Up to ${money(S.limits.max_order)}; the quantity is sized at click time from the live price.`)) return;
+  busy=true; btn.parentElement.querySelectorAll("button").forEach(b=>b.disabled=true);
+  const orig=btn.textContent; btn.textContent=kind==="accept"?"Placing…":"Rejecting…";
+  try{
+    const j=await post("/api/"+kind,{key,sig});
+    if(j.stale){ toast(j.message,false,0,true); }
+    else toast(j.message,j.ok,j.ok?6000:9000);
+    if(j.state){ S=j.state; render(); } else if(!j.stale){ btn.textContent=orig; btn.parentElement.querySelectorAll("button").forEach(b=>b.disabled=false); }
+  }catch(e){ toast("Network error: "+e.message,false,6000); btn.textContent=orig; btn.parentElement.querySelectorAll("button").forEach(b=>b.disabled=false); }
+  busy=false;
+}
+
+async function cancelOrder(id,btn){
+  if(!confirm("Cancel this open order at Schwab?")) return;
+  btn.disabled=true; btn.textContent="Cancelling…";
+  try{ const j=await post("/api/cancel",{order_id:id}); toast(j.message,j.ok,6000); if(j.state){S=j.state;render();} else load(); }
+  catch(e){ toast("Network error: "+e.message,false,6000); }
+}
+
+let tt=null;
+function toast(msg,ok,ms,refresh){
+  const t=$("toast"); t.className=ok?"ok":"bad";
+  t.innerHTML=`<div>${esc(msg)}</div>`+(refresh?`<div class="t-actions"><button class="btn-acc" onclick="hideToast();load(true)">Refresh now</button><button onclick="hideToast()">Dismiss</button></div>`:"");
+  t.style.display="block"; clearTimeout(tt); if(ms) tt=setTimeout(hideToast,ms);
+}
+function hideToast(){ $("toast").style.display="none"; }
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+# Personal settings (AWS account, Schwab account number, bankroll). Start from config.example.py.
+config.py
+# Written by deploy.py; holds ARNs from your AWS account
+.deploy-state.json
+
+# Schwab credentials must never be committed
+.secrets/
+*.env
+.env
+.env.*
+schwab_tokens*.json
+access.json
+*.pem
+*.key
+
+# Python / editors / OS
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.zip
+.idea/
+.vscode/
+.DS_Store
+.claude/
